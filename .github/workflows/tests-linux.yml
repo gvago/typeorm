@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
 
     services:
       cockroachdb:
@@ -44,16 +44,11 @@ jobs:
       - run: pnpm install
       - run: cp .github/workflows/test/cockroachdb.ormconfig.json ormconfig.json
 
-      - name: Split test files for shard ${{ matrix.shard }}/3
-        id: split
+      - name: Run tests (shard ${{ matrix.shard }}/4)
         run: |
-          FILES=$(find build/compiled/test -name "*.test.js" | sort | awk "NR % 3 == ${{ matrix.shard }} - 1")
-          echo "files<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$FILES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-          echo "Shard ${{ matrix.shard }}/3: $(echo "$FILES" | wc -l) test files"
-
-      - run: pnpm exec c8 pnpm exec mocha --bail ${{ steps.split.outputs.files }}
+          FILES=$(find build/compiled/test -name "*.test.js" | sort | awk "NR % 4 == ${{ matrix.shard }} - 1")
+          echo "Shard ${{ matrix.shard }}/4: $(echo "$FILES" | wc -l) test files"
+          pnpm exec c8 pnpm exec mocha --bail $FILES
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
