@@ -14,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
 
     env:
-      TOTAL_SHARDS: 4
+      TOTAL_SHARDS: 6
 
     services:
       cockroachdb:
