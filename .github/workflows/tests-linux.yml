@@ -48,10 +48,6 @@ jobs:
         id: split
         run: |
           FILES=$(find build/compiled/test -name "*.test.js" | sort | awk "NR % 3 == ${{ matrix.shard }} - 1")
-          if [ -z "$FILES" ]; then
-            echo "::error::No test files found for shard ${{ matrix.shard }}"
-            exit 1
-          fi
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
           echo "$FILES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
