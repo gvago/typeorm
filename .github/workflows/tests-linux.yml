@@ -51,10 +51,15 @@ jobs:
         run: |
           FILES=$(find build/compiled/test -name "*.test.js" | sort | awk "NR % $TOTAL_SHARDS == ${{ matrix.shard }} - 1")
           echo "$FILES" | jq -R -s 'split("\n") | map(select(length > 0))' > tests-shard.json
-          jq --slurpfile files tests-shard.json '.spec = $files[0]' .mocharc.json > .mocharc.shard.json
+          jq --slurpfile files tests-shard.json '.spec = $files[0]' .mocharc.json > .mocharc.${{ matrix.shard }}.json
           echo "Shard ${{ matrix.shard }}/$TOTAL_SHARDS: $(jq length tests-shard.json) test files"
 
-      - run: pnpm exec c8 pnpm run test:ci -- --config .mocharc.shard.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mocharc-shard-${{ matrix.shard }}
+          path: .mocharc.${{ matrix.shard }}.json
+
+      - run: pnpm exec c8 pnpm run test:ci -- --config .mocharc.${{ matrix.shard }}.json
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
