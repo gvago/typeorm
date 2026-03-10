@@ -44,11 +44,14 @@ jobs:
       - run: pnpm install
       - run: cp .github/workflows/test/cockroachdb.ormconfig.json ormconfig.json
 
-      - name: Run tests (shard ${{ matrix.shard }}/4)
+      - name: Split test files for shard ${{ matrix.shard }}/4
         run: |
           FILES=$(find build/compiled/test -name "*.test.js" | sort | awk "NR % 4 == ${{ matrix.shard }} - 1")
-          echo "Shard ${{ matrix.shard }}/4: $(echo "$FILES" | wc -l) test files"
-          pnpm exec c8 pnpm exec mocha --bail $FILES
+          echo "$FILES" | jq -R -s 'split("\n") | map(select(length > 0))' > tests-shard.json
+          jq --slurpfile files tests-shard.json '.spec = $files[0]' .mocharc.json > .mocharc.shard.json
+          echo "Shard ${{ matrix.shard }}/4: $(jq length tests-shard.json) test files"
+
+      - run: pnpm exec c8 pnpm run test:ci -- --config .mocharc.shard.json
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
